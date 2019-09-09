@@ -1,0 +1,20 @@
+{
+  "name": "v3",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/mongoose": "^5.5.17",
+    "apollo-server": "^2.9.3",
+    "graphql": "^14.5.4",
+    "lodash": "^4.17.15",
+    "mongoose": "^5.6.13",
+    "ts-node-dev": "^1.0.0-pre.42",
+    "typescript": "^3.6.2"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "prod": "tsc && node ./dist/index.js"
+  }
+}
