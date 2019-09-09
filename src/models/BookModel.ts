@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface BookSchemaData extends Document {
+export default interface BookSchemaData extends Document {
   name: string;
   genre: string;
   authorId: string;
