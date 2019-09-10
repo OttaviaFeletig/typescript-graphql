@@ -1,4 +1,4 @@
-const { gql } = require("apollo-server");
+const { gql, ApolloError } = require("apollo-server");
 import { BookInterface } from "./book";
 import AuthorSchemaData from "../models/AuthorModel";
 const BookModel = require("../models/BookModel");
@@ -51,13 +51,25 @@ export const resolvers = {
     ): AuthorQueryInterface["author"] => AuthorModel.findById({ _id: args.id })
   },
   Mutation: {
-    addAuthor: (parent: any, args: StringStringMap) => {
+    addAuthor: async (parent: any, args: StringStringMap) => {
+      //workaround to get rid of [Object: null prototype]
       const { input } = JSON.parse(JSON.stringify(args));
-      let author: AuthorSchemaData = new AuthorModel({
-        name: input.name,
-        age: input.age
+      let author: AuthorInterface = await AuthorModel.findOne({
+        name: input.name
       });
-      return author.save();
+      if (author) {
+        throw new ApolloError(
+          "This author is already in your book list!",
+          "DUPLICATE_KEY",
+          { field: "name" }
+        );
+      } else {
+        let newAuthor: AuthorSchemaData = new AuthorModel({
+          name: input.name,
+          age: input.age
+        });
+        return newAuthor.save();
+      }
     }
   }
 };
