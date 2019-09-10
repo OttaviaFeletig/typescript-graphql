@@ -8,15 +8,12 @@ export interface QueryInterface {
 }
 const Query = gql`
   type Query {
-    hello: String
+    _empty: String
+  }
+  type Mutation {
+    _empty: String
   }
 `;
 
-const queryResolvers = {
-  Query: {
-    hello: (): QueryInterface["hello"] => "Hello"
-  }
-};
-
 export const typeDefs = [Book, Author, Query];
-export const resolvers = merge(queryResolvers, bookResolvers, authorResolvers);
+export const resolvers = merge(bookResolvers, authorResolvers);

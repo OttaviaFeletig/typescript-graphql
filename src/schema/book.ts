@@ -16,9 +16,7 @@ interface BookQueryInterface extends QueryInterface {
   books: Array<BookInterface>;
   book: BookInterface;
 }
-export interface BookMutationInterface {
-  addBook(name: string, genre: string, authorId: string): BookSchemaData;
-}
+
 export const typeDefs = gql`
   type Book {
     id: String
@@ -30,8 +28,8 @@ export const typeDefs = gql`
     books: [Book]
     book(id: String!): Book
   }
-  type Mutation {
-    addBook(name: String, genre: String, authorId: String): Book
+  extend type Mutation {
+    addBook(name: String!, genre: String, authorId: String!): Book
   }
 `;
 export const resolvers = {
@@ -45,16 +43,12 @@ export const resolvers = {
       BookModel.findById({ _id: args.id })
   },
   Mutation: {
-    addBook: (
-      parent: any,
-      args: StringStringMap
-    ): BookMutationInterface["addBook"] => {
-      let book = new BookModel({
+    addBook: (parent: any, args: StringStringMap) => {
+      let book: BookSchemaData = new BookModel({
         name: args.name,
         genre: args.genre,
         authorId: args.authorId
       });
-      console.log(args);
       return book.save();
     }
   }

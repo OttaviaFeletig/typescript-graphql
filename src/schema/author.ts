@@ -1,5 +1,5 @@
 const { gql } = require("apollo-server");
-import { BookInterface, BookMutationInterface } from "./book";
+import { BookInterface } from "./book";
 import AuthorSchemaData from "../models/AuthorModel";
 const BookModel = require("../models/BookModel");
 const AuthorModel = require("../models/AuthorModel");
@@ -18,9 +18,6 @@ interface AuthorQueryInterface extends QueryInterface {
   author: AuthorInterface;
 }
 
-interface AuthorMutationInterface extends BookMutationInterface {
-  addAuthor(name: string, age: number): AuthorSchemaData;
-}
 export const typeDefs = gql`
   type Author {
     id: String
@@ -33,7 +30,7 @@ export const typeDefs = gql`
     author(id: String!): Author
   }
   extend type Mutation {
-    addAuthor(name: String, age: Int): Author
+    addAuthor(name: String!, age: Int): Author
   }
 `;
 
@@ -50,11 +47,8 @@ export const resolvers = {
     ): AuthorQueryInterface["author"] => AuthorModel.findById({ _id: args.id })
   },
   Mutation: {
-    addAuthor: (
-      parent: any,
-      args: StringStringMap
-    ): AuthorMutationInterface["addAuthor"] => {
-      let author = new AuthorModel({
+    addAuthor: (parent: any, args: StringStringMap) => {
+      let author: AuthorSchemaData = new AuthorModel({
         name: args.name,
         age: args.age
       });
