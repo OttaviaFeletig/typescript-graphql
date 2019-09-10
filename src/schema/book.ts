@@ -28,8 +28,13 @@ export const typeDefs = gql`
     books: [Book]
     book(id: String!): Book
   }
+  input addBookInput {
+    name: String!
+    genre: String
+    authorId: String!
+  }
   extend type Mutation {
-    addBook(name: String!, genre: String, authorId: String!): Book
+    addBook(input: addBookInput): Book
   }
 `;
 export const resolvers = {
@@ -44,10 +49,11 @@ export const resolvers = {
   },
   Mutation: {
     addBook: (parent: any, args: StringStringMap) => {
+      const { input } = JSON.parse(JSON.stringify(args));
       let book: BookSchemaData = new BookModel({
-        name: args.name,
-        genre: args.genre,
-        authorId: args.authorId
+        name: input.name,
+        genre: input.genre,
+        authorId: input.authorId
       });
       return book.save();
     }

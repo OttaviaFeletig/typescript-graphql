@@ -29,8 +29,12 @@ export const typeDefs = gql`
     authors: [Author]
     author(id: String!): Author
   }
+  input addAuthorInput {
+    name: String!
+    age: Int
+  }
   extend type Mutation {
-    addAuthor(name: String!, age: Int): Author
+    addAuthor(input: addAuthorInput): Author
   }
 `;
 
@@ -48,9 +52,10 @@ export const resolvers = {
   },
   Mutation: {
     addAuthor: (parent: any, args: StringStringMap) => {
+      const { input } = JSON.parse(JSON.stringify(args));
       let author: AuthorSchemaData = new AuthorModel({
-        name: args.name,
-        age: args.age
+        name: input.name,
+        age: input.age
       });
       return author.save();
     }
