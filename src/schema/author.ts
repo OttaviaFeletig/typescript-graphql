@@ -55,7 +55,10 @@ export const resolvers = {
       //workaround to get rid of [Object: null prototype]
       const { input } = JSON.parse(JSON.stringify(args));
       let author: AuthorInterface = await AuthorModel.findOne({
-        name: input.name
+        name: {
+          $regex: `${input.name}`,
+          $options: "i"
+        }
       });
       if (author) {
         throw new ApolloError(

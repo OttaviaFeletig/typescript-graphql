@@ -53,7 +53,10 @@ export const resolvers = {
       const { input } = JSON.parse(JSON.stringify(args));
 
       let book: BookInterface = await BookModel.findOne({
-        name: input.name
+        name: {
+          $regex: `${input.name}`,
+          $options: "i"
+        }
       });
       if (book) {
         console.log(book);
