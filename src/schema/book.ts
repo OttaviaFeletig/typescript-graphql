@@ -5,7 +5,7 @@ const AuthorModel = require("../models/AuthorModel");
 const BookModel = require("../models/BookModel");
 import { StringStringMap } from "../interfaces/interfaces";
 import { QueryInterface } from "./index";
-
+const { PubSub } = require("apollo-server");
 export interface BookInterface {
   id: string;
   name: string;
@@ -36,7 +36,12 @@ export const typeDefs = gql`
   extend type Mutation {
     addBook(input: addBookInput): Book
   }
+  extend type Subscription {
+    bookAdded: Book
+  }
 `;
+const pubsub = new PubSub();
+const BOOK_ADDED = "BOOK_ADDED";
 export const resolvers = {
   Book: {
     author: (parent: BookSchemaData, args: any): AuthorInterface =>
@@ -71,8 +76,16 @@ export const resolvers = {
           genre: input.genre,
           authorId: input.authorId
         });
+
+        // const payload = { bookAdded: newBook };
+        pubsub.publish(BOOK_ADDED, { bookAdded: input });
         return newBook.save();
       }
+    }
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator([BOOK_ADDED])
     }
   }
 };
