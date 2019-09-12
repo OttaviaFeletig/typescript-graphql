@@ -3,7 +3,11 @@ import { BookInterface } from "./book";
 import AuthorSchemaData from "../models/AuthorModel";
 const BookModel = require("../models/BookModel");
 const AuthorModel = require("../models/AuthorModel");
-import { StringStringMap } from "../interfaces/interfaces";
+import {
+  StringStringMap,
+  StringNumberMap,
+  StringAnyMap
+} from "../interfaces/interfaces";
 import { QueryInterface } from "./index";
 
 export interface AuthorInterface {
@@ -33,8 +37,13 @@ export const typeDefs = gql`
     name: String!
     age: Int
   }
+  input updateAuthorInput {
+    name: String
+    age: Int
+  }
   extend type Mutation {
     addAuthor(input: addAuthorInput): Author
+    updateAuthor(id: String!, input: updateAuthorInput): Author
   }
 `;
 
@@ -51,9 +60,9 @@ export const resolvers = {
     ): AuthorQueryInterface["author"] => AuthorModel.findById({ _id: args.id })
   },
   Mutation: {
-    addAuthor: async (parent: any, args: StringStringMap) => {
+    addAuthor: async (parent: any, args: StringAnyMap) => {
       //workaround to get rid of [Object: null prototype]
-      const { input } = JSON.parse(JSON.stringify(args));
+      const { input }: StringAnyMap = JSON.parse(JSON.stringify(args));
       let author: AuthorInterface = await AuthorModel.findOne({
         name: {
           $regex: `${input.name}`,
@@ -72,6 +81,32 @@ export const resolvers = {
           age: input.age
         });
         return newAuthor.save();
+      }
+    },
+    updateAuthor: async (parent: any, args: StringAnyMap) => {
+      const { id }: StringStringMap = args;
+      const { input }: StringAnyMap = JSON.parse(JSON.stringify(args));
+      //to check if my id is a valid ObjectId from MongoDB
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        let author: AuthorInterface = await AuthorModel.findById({
+          _id: id
+        });
+        if (!author) {
+          throw new ApolloError("This author doesn't exist!", "NOT_FOUND", {
+            field: "id"
+          });
+        }
+        if (input.name !== undefined) {
+          author.name = input.name;
+        }
+        if (input.age !== undefined) {
+          author.age = input.age;
+        }
+        return author;
+      } else {
+        throw new ApolloError("Provide a valid id!", "INTERNAL_ERROR", {
+          field: "id"
+        });
       }
     }
   }
