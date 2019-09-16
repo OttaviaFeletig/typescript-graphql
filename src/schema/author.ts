@@ -49,8 +49,9 @@ export const typeDefs = gql`
 
 export const resolvers = {
   Author: {
-    books: (parent: AuthorInterface): AuthorInterface["books"] =>
-      BookModel.find({ authorId: parent.id })
+    books: (parent: AuthorInterface): Array<BookInterface> => {
+      return BookModel.find({ authorId: parent.id });
+    }
   },
   Query: {
     authors: (): AuthorQueryInterface["authors"] => AuthorModel.find(),
@@ -60,7 +61,7 @@ export const resolvers = {
     ): AuthorQueryInterface["author"] => AuthorModel.findById({ _id: args.id })
   },
   Mutation: {
-    addAuthor: async (parent: any, args: StringAnyMap) => {
+    addAuthor: async (parent: any, args: StringAnyMap):  Promise<AuthorInterface> => {
       //workaround to get rid of [Object: null prototype]
       const { input }: StringAnyMap = JSON.parse(JSON.stringify(args));
       let author: AuthorInterface = await AuthorModel.findOne({
@@ -83,7 +84,10 @@ export const resolvers = {
         return newAuthor.save();
       }
     },
-    updateAuthor: async (parent: any, args: StringAnyMap) => {
+    updateAuthor: async (
+      parent: any,
+      args: StringAnyMap
+    ): Promise<AuthorInterface> => {
       const { id }: StringStringMap = args;
       const { input }: StringAnyMap = JSON.parse(JSON.stringify(args));
       //to check if my id is a valid ObjectId from MongoDB

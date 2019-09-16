@@ -35,6 +35,7 @@ export const typeDefs = gql`
   }
   extend type Mutation {
     addBook(input: addBookInput): Book
+    deleteBook(id: String!): String
   }
   extend type Subscription {
     bookAdded: Book
@@ -53,7 +54,7 @@ export const resolvers = {
       BookModel.findById({ _id: args.id })
   },
   Mutation: {
-    addBook: async (parent: any, args: StringStringMap) => {
+    addBook: async (parent: any, args: StringStringMap):  Promise<BookInterface> => {
       //workaround to get rid of [Object: null prototype]
       const { input } = JSON.parse(JSON.stringify(args));
 
@@ -76,10 +77,23 @@ export const resolvers = {
           genre: input.genre,
           authorId: input.authorId
         });
-
-        // const payload = { bookAdded: newBook };
         pubsub.publish(BOOK_ADDED, { bookAdded: input });
         return newBook.save();
+      }
+    },
+    deleteBook: async(parent: any, args: StringStringMap): Promise<String> => {
+      const { id }: StringStringMap = args;
+      let removedBook =  await BookModel.deleteOne({_id: id})
+      // console.log(book)
+      if(!removedBook){
+         throw new ApolloError(
+          "This book doesn't exist!",
+          "NOT_FOUND",
+          { field: "id" }
+        );
+      }else{
+        console.log(removedBook)
+        return "The book has been removed succesfully";
       }
     }
   },
