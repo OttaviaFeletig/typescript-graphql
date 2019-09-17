@@ -4,9 +4,9 @@ import { typeDefs as Author, resolvers as authorResolvers } from "./author";
 import { merge } from "lodash";
 import { makeExecutableSchema, addMockFunctionsToSchema } from "graphql-tools";
 
-export interface QueryInterface {
-  hello: string;
-}
+// export interface QueryInterface {
+//   hello: string;
+// }
 const Query = gql`
   type Query {
     _empty: String

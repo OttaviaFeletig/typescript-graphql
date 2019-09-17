@@ -4,25 +4,28 @@ import BookSchemaData from "../models/BookModel";
 const AuthorModel = require("../models/AuthorModel");
 const BookModel = require("../models/BookModel");
 import { StringStringMap } from "../interfaces/interfaces";
-import { QueryInterface } from "./index";
+// import { QueryInterface } from "./index";
 const { PubSub } = require("apollo-server");
 export interface BookInterface {
   id: string;
   name: string;
   genre: string;
-  author: AuthorInterface;
+  // author: AuthorInterface;
 }
-interface BookQueryInterface extends QueryInterface {
+interface BookQueryInterface extends BookInterface {
   books: Array<BookInterface>;
-  book: BookInterface;
 }
+// interface BookQueryInterface extends QueryInterface {
+//   books: Array<BookInterface>;
+//   book: BookInterface;
+// }
 
 export const typeDefs = gql`
   type Book {
     id: String
     name: String!
     genre: String
-    author: Author!
+    author: Author
   }
   extend type Query {
     books: [Book]
@@ -35,7 +38,7 @@ export const typeDefs = gql`
   }
   extend type Mutation {
     addBook(input: addBookInput): Book
-    deleteBook(id: String!): String
+    deleteBook(id: String!): Book
   }
   extend type Subscription {
     bookAdded: Book
@@ -49,12 +52,15 @@ export const resolvers = {
       AuthorModel.findById(parent.authorId)
   },
   Query: {
-    books: (): BookQueryInterface["books"] => BookModel.find(),
-    book: (parent: any, args: StringStringMap): BookQueryInterface["book"] =>
+    books: (): Array<BookQueryInterface> => BookModel.find(),
+    book: (parent: any, args: StringStringMap): BookQueryInterface =>
       BookModel.findById({ _id: args.id })
   },
   Mutation: {
-    addBook: async (parent: any, args: StringStringMap):  Promise<BookInterface> => {
+    addBook: async (
+      parent: any,
+      args: StringStringMap
+    ): Promise<BookSchemaData> => {
       //workaround to get rid of [Object: null prototype]
       const { input } = JSON.parse(JSON.stringify(args));
 
@@ -81,19 +87,19 @@ export const resolvers = {
         return newBook.save();
       }
     },
-    deleteBook: async(parent: any, args: StringStringMap): Promise<String> => {
+    deleteBook: async (
+      parent: any,
+      args: StringStringMap
+    ): Promise<BookInterface> => {
       const { id }: StringStringMap = args;
-      let removedBook =  await BookModel.deleteOne({_id: id})
+      let removedBook = await BookModel.findByIdAndDelete({ _id: id });
       // console.log(book)
-      if(!removedBook){
-         throw new ApolloError(
-          "This book doesn't exist!",
-          "NOT_FOUND",
-          { field: "id" }
-        );
-      }else{
-        console.log(removedBook)
-        return "The book has been removed succesfully";
+      if (!removedBook) {
+        throw new ApolloError("This book doesn't exist!", "NOT_FOUND", {
+          field: "id"
+        });
+      } else {
+        return removedBook;
       }
     }
   },

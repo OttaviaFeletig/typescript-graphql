@@ -8,19 +8,23 @@ import {
   StringNumberMap,
   StringAnyMap
 } from "../interfaces/interfaces";
-import { QueryInterface } from "./index";
+// import { QueryInterface } from "./index";
 
 export interface AuthorInterface {
   id: string;
   name: string;
   age: number;
+  // books: Array<BookInterface>;
+}
+
+interface AuthorQueryInterface extends AuthorInterface {
   books: Array<BookInterface>;
 }
 
-interface AuthorQueryInterface extends QueryInterface {
-  authors: Array<AuthorInterface>;
-  author: AuthorInterface;
-}
+// interface AuthorQueryInterface extends QueryInterface {
+//   authors: Array<AuthorInterface>;
+//   author: AuthorInterface;
+// }
 
 export const typeDefs = gql`
   type Author {
@@ -54,14 +58,15 @@ export const resolvers = {
     }
   },
   Query: {
-    authors: (): AuthorQueryInterface["authors"] => AuthorModel.find(),
-    author: (
-      parent: any,
-      args: StringStringMap
-    ): AuthorQueryInterface["author"] => AuthorModel.findById({ _id: args.id })
+    authors: (): Array<AuthorQueryInterface> => AuthorModel.find(),
+    author: (parent: any, args: StringStringMap): AuthorQueryInterface =>
+      AuthorModel.findById({ _id: args.id })
   },
   Mutation: {
-    addAuthor: async (parent: any, args: StringAnyMap):  Promise<AuthorInterface> => {
+    addAuthor: async (
+      parent: any,
+      args: StringAnyMap
+    ): Promise<AuthorSchemaData> => {
       //workaround to get rid of [Object: null prototype]
       const { input }: StringAnyMap = JSON.parse(JSON.stringify(args));
       let author: AuthorInterface = await AuthorModel.findOne({
