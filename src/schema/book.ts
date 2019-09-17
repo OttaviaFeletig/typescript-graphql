@@ -4,21 +4,15 @@ import BookSchemaData from "../models/BookModel";
 const AuthorModel = require("../models/AuthorModel");
 const BookModel = require("../models/BookModel");
 import { StringStringMap } from "../interfaces/interfaces";
-// import { QueryInterface } from "./index";
 const { PubSub } = require("apollo-server");
 export interface BookInterface {
   id: string;
   name: string;
   genre: string;
-  // author: AuthorInterface;
 }
 interface BookQueryInterface extends BookInterface {
   books: Array<BookInterface>;
 }
-// interface BookQueryInterface extends QueryInterface {
-//   books: Array<BookInterface>;
-//   book: BookInterface;
-// }
 
 export const typeDefs = gql`
   type Book {
@@ -42,10 +36,12 @@ export const typeDefs = gql`
   }
   extend type Subscription {
     bookAdded: Book
+    bookDeleted: Book
   }
 `;
 const pubsub = new PubSub();
 const BOOK_ADDED = "BOOK_ADDED";
+const BOOK_DELETED = "BOOK_DELETED";
 export const resolvers = {
   Book: {
     author: (parent: BookSchemaData, args: any): AuthorInterface =>
@@ -93,12 +89,13 @@ export const resolvers = {
     ): Promise<BookInterface> => {
       const { id }: StringStringMap = args;
       let removedBook = await BookModel.findByIdAndDelete({ _id: id });
-      // console.log(book)
       if (!removedBook) {
         throw new ApolloError("This book doesn't exist!", "NOT_FOUND", {
           field: "id"
         });
       } else {
+        pubsub.publish(BOOK_DELETED, { bookDeleted: removedBook });
+
         return removedBook;
       }
     }
@@ -106,6 +103,9 @@ export const resolvers = {
   Subscription: {
     bookAdded: {
       subscribe: () => pubsub.asyncIterator([BOOK_ADDED])
+    },
+    bookDeleted: {
+      subscribe: () => pubsub.asyncIterator([BOOK_DELETED])
     }
   }
 };

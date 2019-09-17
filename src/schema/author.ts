@@ -8,23 +8,16 @@ import {
   StringNumberMap,
   StringAnyMap
 } from "../interfaces/interfaces";
-// import { QueryInterface } from "./index";
 
 export interface AuthorInterface {
   id: string;
   name: string;
   age: number;
-  // books: Array<BookInterface>;
 }
 
 interface AuthorQueryInterface extends AuthorInterface {
   books: Array<BookInterface>;
 }
-
-// interface AuthorQueryInterface extends QueryInterface {
-//   authors: Array<AuthorInterface>;
-//   author: AuthorInterface;
-// }
 
 export const typeDefs = gql`
   type Author {
